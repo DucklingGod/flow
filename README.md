@@ -75,7 +75,7 @@ When the app is opened on a phone, `127.0.0.1` refers to the phone, not the deve
 
 The implementation roadmap is in [PLAN.md](PLAN.md). Financial outputs are planning estimates, not guaranteed returns or individualized investment, tax, or legal advice.
 
-Repository publication and branch-protection steps are documented in [docs/REPOSITORY_HANDOFF.md](docs/REPOSITORY_HANDOFF.md). The public `origin/main` contains the alpha history and the local CI mirror has passed; the successful hosted GitHub Actions URL/SHA and branch-protection evidence still need to be recorded.
+Repository publication and branch-protection steps are documented in [docs/REPOSITORY_HANDOFF.md](docs/REPOSITORY_HANDOFF.md). The public `origin/main` contains the alpha history; local and hosted CI passed for `3426ab7`. Branch-protection and pull-request enforcement evidence still need owner configuration.
 
 ## Deploy to Vercel
 

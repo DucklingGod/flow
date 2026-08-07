@@ -28,7 +28,7 @@
 - [x] Local GitHub CI mirror passes lint, typecheck, coverage, boundary scan, dependency audit, and production build
 - [x] Repository ignores build, coverage, browser-work, environment, log, and encrypted-backup artifacts
 - [x] Initial commit `c701d6219e495d7a883a21e50188a79abfbaed3e` pushed to `origin/main` and remote SHA verified
-- [ ] GitHub-hosted `verify` workflow conclusion and URL recorded for the pushed SHA
+- [x] GitHub-hosted `verify` passed for `3426ab7a904fc88d11f09e387b5fc1fda904df39`: https://github.com/DucklingGod/flow/actions/runs/31161122786
 - [ ] `main` branch protection requires the hosted `verify` check and pull-request review
 
 ## Security and privacy gates

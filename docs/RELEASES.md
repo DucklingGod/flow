@@ -44,7 +44,8 @@ Delivered locally:
 Pending hosted evidence:
 
 - Initial commit `c701d6219e495d7a883a21e50188a79abfbaed3e` and follow-up documentation were pushed to the now-public `origin/main`; the public GitHub API can be used to inspect hosted runs without a CLI session.
-- A successful GitHub-hosted CI URL/SHA, branch protection, pull-request enforcement, and security-setting evidence remain pending. Repository-setting changes still require authenticated owner access.
+- GitHub-hosted `verify` passed for commit `3426ab7a904fc88d11f09e387b5fc1fda904df39`: https://github.com/DucklingGod/flow/actions/runs/31161122786
+- Branch protection, pull-request enforcement, and security-setting evidence remain pending. Repository-setting changes still require authenticated owner access.
 - G6, G7, G9, and the Final Gate remain unchanged; local or hosted automation cannot waive these external approvals.
 
 ## 1.0.0-alpha.3 — User-approved model changes and delivery governance
