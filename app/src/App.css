@@ -636,7 +636,8 @@ footer p { max-width:700px; margin:0; text-align:right; font-size:var(--type-lab
   :where(*,*::before,*::after) { box-shadow:none !important; text-shadow:none !important; }
   :where(button.active,[aria-current='page'],[aria-pressed='true'],[role='switch'][aria-checked='true']) { outline:2px solid Highlight; outline-offset:-3px; }
   label:focus-within { forced-color-adjust:none; outline:3px solid Highlight !important; outline-offset:3px; }
-  button:focus,input:focus,select:focus,textarea:focus,summary:focus,a[href]:focus,[tabindex]:focus { forced-color-adjust:none; border-color:Highlight !important; border-style:solid !important; border-width:3px !important; outline-color:Highlight !important; outline-style:solid !important; outline-width:3px !important; outline-offset:3px; box-shadow:none !important; }
+  .member-list > span:focus-within { forced-color-adjust:none; outline:3px solid Highlight !important; outline-offset:3px; }
+  :where(button,input,select,textarea,summary,a[href],[tabindex]):focus { forced-color-adjust:auto; border-color:Highlight !important; border-style:solid !important; border-width:3px !important; outline:3px solid Highlight !important; outline-offset:3px !important; box-shadow:none !important; }
   .navigation-feedback > i { background:Highlight; }
   .chart-line,.retirement-chart-line { stroke:CanvasText !important; }
   .chart-area,.retirement-chart-area { fill:Canvas !important; }

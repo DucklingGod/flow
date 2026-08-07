@@ -116,7 +116,7 @@ async function auditRoute(page, route, profile) {
       const element = document.activeElement
       if (!element || element === document.body) return null
       const style = getComputedStyle(element)
-      const focusContainer = element.closest('label')
+      const focusContainer = element.closest('label, .member-list > span')
       const containerStyle = focusContainer ? getComputedStyle(focusContainer) : null
       const forcedColorBorder = style.forcedColorAdjust === 'none' && Number.parseFloat(style.borderTopWidth) >= 3
       const containerIndicator = Boolean(containerStyle && containerStyle.outlineStyle !== 'none' && containerStyle.outlineWidth !== '0px')
@@ -178,7 +178,11 @@ async function auditProfile(browser, engine, profile) {
     await navigate(page, 'studio')
     await page.screenshot({ path: path.join(artifactDir, `${engine}-${profile.name}.png`), fullPage: false })
     const externalOrigins = [...networkOrigins].filter((origin) => origin !== appUrl)
-    const failures = routeReports.flatMap((route) => route.failures.map((type) => ({ route: route.route, type })))
+    const failures = routeReports.flatMap((route) => route.failures.map((type) => ({
+      route: route.route,
+      type,
+      details: type === 'missing-focus-indicator' ? route.focusIndicatorMisses.slice(0, 5) : undefined,
+    })))
     if (runtimeIssues.length) failures.push({ route: null, type: 'runtime-issue', count: runtimeIssues.length })
     if (consoleIssues.length) failures.push({ route: null, type: 'console-issue', count: consoleIssues.length })
     if (externalOrigins.length) failures.push({ route: null, type: 'external-origin', count: externalOrigins.length })
@@ -226,7 +230,9 @@ console.log(JSON.stringify({
 if (report.failures.length) {
   for (const failure of report.failures) {
     const location = [failure.engine, failure.profile, failure.route].filter(Boolean).join('/') || 'responsive-matrix'
-    const detail = failure.message ? `${failure.type}: ${failure.message}` : failure.type
+    const detail = failure.message
+      ? `${failure.type}: ${failure.message}`
+      : `${failure.type}${failure.details ? `: ${JSON.stringify(failure.details)}` : ''}`
     console.error(`::error title=Responsive accessibility (${location})::${detail.replaceAll(/\r?\n/g, ' ')}`)
   }
   process.exitCode = 1
