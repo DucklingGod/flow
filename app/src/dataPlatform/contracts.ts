@@ -1,3 +1,4 @@
+import '../domain/zodRuntime'
 import { z } from 'zod'
 
 export const DataKindSchema = z.enum([

@@ -1,3 +1,4 @@
+import './zodRuntime'
 import { z } from 'zod'
 import { MAX_PORTFOLIO_TRANSACTIONS, TRANSACTION_LIMITS } from './importLimits'
 import { CALCULATION_MODEL_VERSIONS, CURRENT_CALCULATION_MODEL_VERSION, LEGACY_CALCULATION_MODEL_VERSION } from './calculationModels'

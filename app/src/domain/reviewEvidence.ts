@@ -1,3 +1,4 @@
+import './zodRuntime'
 import { z } from 'zod'
 
 const gateIds = ['G6', 'G7', 'G9'] as const

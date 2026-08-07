@@ -1,3 +1,4 @@
+import './zodRuntime'
 import { z } from 'zod'
 import type { PlanningContext } from './copilot'
 
