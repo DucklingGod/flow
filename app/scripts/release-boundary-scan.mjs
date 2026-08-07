@@ -58,6 +58,22 @@ const remoteFlags = ['account', 'cloudSync', 'householdCollaboration', 'advisorS
 const unsafeFlags = remoteFlags.filter((flag) => !new RegExp(`\\b${flag}:\\s*false\\b`).test(flags))
 if (unsafeFlags.length) findings.push({ type: 'remote capability not explicitly false', flags: unsafeFlags })
 
+const workflowPath = path.join(repoRoot, '.github', 'workflows', 'ci.yml')
+const workflow = await readFile(workflowPath, 'utf8')
+const requiredActionMajors = [
+  ['actions/checkout', 7],
+  ['actions/setup-node', 7],
+  ['actions/upload-artifact', 7],
+]
+for (const [action, major] of requiredActionMajors) {
+  if (!workflow.includes(`uses: ${action}@v${major}`)) findings.push({ type: 'release workflow action major is not pinned to the approved runtime', action, requiredMajor: major })
+}
+const unsafeArtifactLines = workflow.split(/\r?\n/).map((line, index) => ({ line: line.trim(), number: index + 1 })).filter(({ line }) =>
+  /^app\/work\/(?:e2e|cross-browser|llm-connectors|acceptance-snapshot|studio-interactions|accessibility|responsive-accessibility|external-review)\/$/.test(line)
+  || /(?:^|\/)(?:profile|downloads)(?:\/|$)/i.test(line)
+  || /\.(?:flowbackup|db|db-wal|db-shm|db-journal)(?:$|\s)/i.test(line))
+if (unsafeArtifactLines.length) findings.push({ type: 'release artifact upload includes broad browser state or backup data', entries: unsafeArtifactLines })
+
 const report = {
   scannedFiles: files.length,
   remoteFlagsChecked: remoteFlags.length,

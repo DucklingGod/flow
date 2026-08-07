@@ -8,6 +8,7 @@ Delivered locally:
 
 - GitHub Actions `verify` workflow for Node 24, dependency installation, lint, typecheck, coverage, release-boundary scan, high-severity dependency audit, production build, and evidence artifacts
 - Weekly Dependabot checks for npm dependencies and GitHub Actions
+- GitHub Actions checkout, Node setup, and artifact upload use the Node 24-compatible v7 actions. Release artifacts are restricted to an allowlist of build outputs, aggregate reports, synthetic screenshots, and external-review packet files; disposable browser profiles, browser databases, downloads, and encrypted test backups are excluded and statically guarded.
 - Pull-request safety checklist, contribution guide, security reporting policy, repository handoff, and ignore rules for generated or sensitive local artifacts
 - Deterministic release-boundary scan covering credential patterns, persisted secret-like values, transaction-related network calls, and ten remote/transaction flags that must remain explicitly false
 - Local release-gate mirror passed: 244/244 Vitest tests across 42 files plus 5/5 Node verifier integrity tests; 93.16% statements, 85.80% branches, 96.19% functions, and 97.55% lines; 124 boundary-scanned files and all 10 remote/transaction rollout flags passed with zero findings; 0 vulnerabilities; production build passed with a 387.01 kB initial chunk and no chunk-size warning

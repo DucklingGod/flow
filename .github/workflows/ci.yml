@@ -22,10 +22,10 @@ jobs:
 
     steps:
       - name: Check out source
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: 24
           cache: npm
@@ -104,19 +104,34 @@ jobs:
 
       - name: Upload release evidence
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: flow-alpha-ci-evidence
           path: |
             app/dist/
             app/coverage/coverage-summary.json
-            app/work/e2e/
-            app/work/cross-browser/
-            app/work/llm-connectors/
-            app/work/acceptance-snapshot/
-            app/work/studio-interactions/
-            app/work/accessibility/
-            app/work/responsive-accessibility/
-            app/work/external-review/
+            app/work/e2e/latest-*-report.json
+            app/work/e2e/*/*.png
+            app/work/cross-browser/latest-report.json
+            app/work/cross-browser/*/report.json
+            app/work/cross-browser/*/*/*.png
+            app/work/llm-connectors/latest-report.json
+            app/work/llm-connectors/*/report.json
+            app/work/llm-connectors/*/*.png
+            app/work/acceptance-snapshot/latest-report.json
+            app/work/acceptance-snapshot/*/report.json
+            app/work/acceptance-snapshot/*/*.png
+            app/work/studio-interactions/latest-report.json
+            app/work/studio-interactions/*/report.json
+            app/work/studio-interactions/*/*.png
+            app/work/accessibility/latest-report.json
+            app/work/accessibility/*/report.json
+            app/work/responsive-accessibility/latest-report.json
+            app/work/responsive-accessibility/*/report.json
+            app/work/responsive-accessibility/*/*.png
+            app/work/external-review/latest-manifest.json
+            app/work/external-review/*/*.json
+            app/work/external-review/*/*.csv
+            app/work/external-review/*/*.md
           if-no-files-found: warn
           retention-days: 14

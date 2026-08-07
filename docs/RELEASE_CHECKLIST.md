@@ -27,6 +27,7 @@
 - [x] Calculation-model update notice renders at 1440 px and 390 px with explicit approval, no silent-change copy, restore-point disclosure, no overflow, and zero runtime issues
 - [x] Local GitHub CI mirror passes lint, typecheck, coverage, boundary scan, dependency audit, and production build
 - [x] Repository ignores build, coverage, browser-work, environment, log, and encrypted-backup artifacts
+- [x] Hosted artifacts use a privacy-safe allowlist and exclude disposable profiles, browser databases, downloads, journals, executables, and encrypted test backups; the boundary scan rejects broad work-directory uploads
 - [x] Initial commit `c701d6219e495d7a883a21e50188a79abfbaed3e` pushed to `origin/main` and remote SHA verified
 - [x] GitHub-hosted `verify` passed for `3426ab7a904fc88d11f09e387b5fc1fda904df39`: https://github.com/DucklingGod/flow/actions/runs/31161122786
 - [ ] `main` branch protection requires the hosted `verify` check and pull-request review
