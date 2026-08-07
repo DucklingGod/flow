@@ -42,8 +42,8 @@ Delivered locally:
 
 Pending hosted evidence:
 
-- The GitHub remote had no refs when verified; the local branch has no initial commit and nothing has been pushed.
-- GitHub-hosted CI, branch protection, pull-request enforcement, and security-setting evidence therefore remain pending the initial publication.
+- Initial commit `c701d6219e495d7a883a21e50188a79abfbaed3e` was pushed to `origin/main`, and the local branch now tracks the matching remote SHA.
+- GitHub-hosted CI completion, branch protection, pull-request enforcement, and security-setting evidence remain pending; this workstation has no authenticated GitHub CLI session to inspect or configure them.
 - G6, G7, G9, and the Final Gate remain unchanged; local or hosted automation cannot waive these external approvals.
 
 ## 1.0.0-alpha.3 — User-approved model changes and delivery governance

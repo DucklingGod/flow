@@ -4,13 +4,13 @@
 
 - Local branch: `main`
 - Git remote: `origin` points to `https://github.com/DucklingGod/flow.git`
-- Remote state verified on 2026-08-07: the repository returned no refs, so no branch or tag was available at the time of verification.
-- Local state: no commit has been created and nothing has been pushed.
-- Hosted GitHub Actions evidence: pending the first push.
+- Remote state verified on 2026-08-07: `origin/main` points to initial commit `c701d6219e495d7a883a21e50188a79abfbaed3e`.
+- Local state: `main` tracks `origin/main` and the post-push working tree was clean.
+- Hosted GitHub Actions evidence: the push has been completed; workflow completion still needs to be recorded because this workstation has no authenticated GitHub CLI session.
 
 The local release-gate mirror currently passes lint, typecheck, automated tests and coverage thresholds, the release-boundary scan across all reviewed source files and 10 disabled remote/transaction rollout flags, dependency audit, and the production build. The desktop/mobile Product Acceptance Snapshot contract also passes with four traceable questions, five pending-user actions, no plan mutation, and localhost-only requests. The generated review-response template is hash-bound and fail-closed; completed external signatures and Product Owner acceptance remain pending. This evidence proves the working tree passed locally; it does not prove that GitHub-hosted CI has run or that the Final Gate was approved.
 
-The workflow also installs Playwright Firefox/WebKit, runs isolated desktop/mobile critical journeys, runs the pinned axe WCAG gate, and executes the 104-check responsive accessibility matrix in Chrome/WebKit. WebKit passes locally, including navigation-feedback and reduced-motion assertions; the 60-scan axe matrix has zero violations/incomplete results, while the 320/640 px reflow, landscape and forced-colors matrix has zero failures. Firefox remains a best-effort CI signal and is not a release blocker; Safari-browser and manual assistive-technology evidence remain required external Gate G9 work.
+The workflow also installs Playwright WebKit, runs isolated desktop/mobile critical journeys, runs the pinned axe WCAG gate, and executes the 104-check responsive accessibility matrix in Chrome/WebKit. WebKit passes locally, including navigation-feedback and reduced-motion assertions; the 60-scan axe matrix has zero violations/incomplete results, while the 320/640 px reflow, landscape and forced-colors matrix has zero failures. Safari-browser and manual assistive-technology evidence remain required external Gate G9 work.
 
 ## Initial publication checklist
 
