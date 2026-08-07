@@ -268,6 +268,7 @@ const reviewFiles = [
   'app/src/components/ScenarioStudio.tsx', 'app/src/components/TaxStudio.tsx', 'app/src/components/WealthStudio.tsx', 'app/scripts/studio-interactions-e2e.mjs', 'app/vitest.config.ts',
   'docs/ADR-002-REMOTE-SECURITY-FOUNDATION.md', 'app/src/domain/syncEnvelope.ts', 'app/src/domain/syncEnvelope.test.ts', 'app/src/domain/syncQueue.ts', 'app/src/domain/syncQueue.test.ts', 'vercel.json',
   'app/src/data/planRepository.ts', 'app/src/data/planRepository.integration.test.ts', 'app/scripts/responsive-accessibility.mjs',
+  'app/scripts/axe-accessibility.mjs',
 ]
 const fileManifest = []
 for (const relativePath of reviewFiles) {

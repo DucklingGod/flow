@@ -133,14 +133,24 @@ async function auditEngine(engine) {
   return engineReport
 }
 
+async function auditEngineWithRetry(engine) {
+  try {
+    return await auditEngine(engine)
+  } catch (firstError) {
+    console.warn(`Accessibility audit retry: ${engine}: ${firstError instanceof Error ? firstError.message : 'unknown error'}`)
+    return auditEngine(engine)
+  }
+}
+
 const report = { runId, axeVersion: axeCore.version, tags: axeTags, engines: [], failures: [] }
 for (const engine of requestedEngines) {
   try {
-    const engineReport = await auditEngine(engine)
+    const engineReport = await auditEngineWithRetry(engine)
     report.engines.push(engineReport)
     for (const viewport of engineReport.viewports) {
       for (const route of viewport.routes) {
         if (route.violations.length) report.failures.push({ engine, viewport: viewport.viewport.name, route: route.route, type: 'wcag-violation', issues: route.violations })
+        if (route.incomplete.length) report.failures.push({ engine, viewport: viewport.viewport.name, route: route.route, type: 'wcag-incomplete', issues: route.incomplete })
         if (route.stateSemantics.missingState > 0) report.failures.push({ engine, viewport: viewport.viewport.name, route: route.route, type: 'state-semantics', details: route.stateSemantics })
       }
       if (viewport.runtimeIssues.length) report.failures.push({ engine, viewport: viewport.viewport.name, type: 'runtime', count: viewport.runtimeIssues.length })
@@ -155,4 +165,12 @@ for (const engine of requestedEngines) {
 await writeFile(path.join(artifactDir, 'report.json'), JSON.stringify(report, null, 2))
 await writeFile(path.resolve('work', 'accessibility', 'latest-report.json'), JSON.stringify(report, null, 2))
 console.log(JSON.stringify({ axeVersion: report.axeVersion, engines: report.engines.map((item) => item.engine), failures: report.failures, artifactDir }, null, 2))
-if (report.failures.length) process.exitCode = 1
+if (report.failures.length) {
+  for (const failure of report.failures) {
+    const location = [failure.engine, failure.viewport, failure.route].filter(Boolean).join('/') || 'accessibility-matrix'
+    const issueIds = Array.isArray(failure.issues) ? failure.issues.map((issue) => issue.id).join(',') : ''
+    const detail = failure.message || `${failure.type}${issueIds ? `: ${issueIds}` : ''}${failure.count ? ` (${failure.count})` : ''}`
+    console.error(`::error title=Accessibility audit (${location})::${String(detail).replaceAll(/\r?\n/g, ' ')}`)
+  }
+  process.exitCode = 1
+}
