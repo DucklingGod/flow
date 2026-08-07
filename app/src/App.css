@@ -892,3 +892,33 @@ footer p { max-width:700px; margin:0; text-align:right; font-size:var(--type-lab
 .comparison-grid > div.active .negative { color:#ffb7aa !important; }
 .tornado-list span b { color:#45631e; }
 .tornado-list small { color:#5c6d65; }
+
+/* Entitlement gate shown in place of a studio the current tier does not include. */
+.feature-gate { display:grid; grid-template-columns:54px minmax(0,1fr) auto; align-items:center; gap:18px; padding:26px; border:1px solid #c8d99d; border-radius:24px 24px 8px 24px; background:linear-gradient(120deg, rgba(247,255,226,.96), rgba(255,255,250,.94)); box-shadow:0 14px 34px rgba(56,76,47,.08); }
+.feature-gate-icon { display:grid; place-items:center; width:54px; height:54px; border-radius:17px; background:#e1f3b7; color:#47692d; }
+.feature-gate-icon svg { width:24px; }
+.feature-gate-copy .eyebrow { color:#57655b; font-size:var(--type-caption); font-weight:700; letter-spacing:.13em; }
+.feature-gate-copy h2 { margin:6px 0 8px; font-size:var(--type-title-sm); letter-spacing:-.45px; }
+.feature-gate-copy p { margin:0; color:#52645b; font-size:var(--type-body-sm); line-height:1.58; }
+.feature-gate-note { margin-top:6px; color:#57655b; font-size:var(--type-label); }
+.feature-gate-action { display:inline-flex; align-items:center; gap:8px; min-height:48px; padding:0 22px; border-radius:13px; background:var(--forest); color:#f2f8ec; text-decoration:none; font-size:var(--type-body-sm); font-weight:650; white-space:nowrap; }
+.feature-gate-action:hover { background:var(--forest-2); }
+.feature-gate-action svg { width:17px; }
+
+@media (max-width: 620px) { .feature-gate { grid-template-columns:1fr; }.feature-gate-action { justify-content:center; } }
+
+/* Sidebar account strip. Present only when an identity provider is configured. */
+.account-badge { margin-top:auto; margin-bottom:12px; display:grid; gap:8px; padding:12px; border:1px solid var(--line); border-radius:16px; background:rgba(255,255,255,.7); }
+.account-identity { display:flex; align-items:center; gap:10px; min-width:0; }
+.account-identity > div { min-width:0; display:grid; }
+.account-identity strong { font-size:var(--type-body-sm); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.account-identity small { color:var(--muted); font-size:var(--type-caption); }
+.account-upgrade, .account-signin { display:flex; align-items:center; justify-content:center; gap:7px; min-height:38px; border-radius:11px; text-decoration:none; font-size:var(--type-label); font-weight:650; }
+.account-upgrade { background:#e7f4c9; color:#4d6e2b; }
+.account-upgrade:hover { background:#dcefb4; }
+.account-signin { border:1px solid var(--line); color:var(--ink); background:white; }
+.account-signin:hover { border-color:var(--forest); }
+.account-upgrade svg, .account-signin svg { width:16px; }
+.sidebar .account-badge + .sidebar-note { margin-top:0; }
+/* An enabled remote capability is visually distinct from an enabled local one. */
+.feature-gates .remote-on { border-color:#d6c48f; color:#7a5a1e; background:#fdf6e3; }

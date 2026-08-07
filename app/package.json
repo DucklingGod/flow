@@ -26,6 +26,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@clerk/clerk-react": "5.61.9",
     "@fontsource/noto-sans-thai": "^5.3.0",
     "dexie": "^4.4.4",
     "lucide-react": "^1.29.0",

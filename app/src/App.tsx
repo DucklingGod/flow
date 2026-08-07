@@ -13,6 +13,8 @@ import { CalculationModelNotice } from './components/CalculationModelNotice'
 import { releaseFlags } from './config/releaseFlags'
 import { ProjectionChart } from './components/ProjectionChart'
 import { FormattedNumberInput } from './components/FormattedNumberInput'
+import { FeatureGate } from './components/FeatureGate'
+import { AccountBadge } from './components/AccountBadge'
 
 const WealthStudio = lazy(() => import('./components/WealthStudio').then((module) => ({ default: module.WealthStudio })))
 const LifeCanvas = lazy(() => import('./components/LifeCanvas').then((module) => ({ default: module.LifeCanvas })))
@@ -141,6 +143,7 @@ function App() {
           <button className={activeView === 'reviews' ? 'active' : ''} aria-current={activeView === 'reviews' ? 'page' : undefined} onClick={() => openView('reviews')}><BookOpenCheck />Wealth Review</button>
           <button className={activeView === 'vault' ? 'active' : ''} aria-current={activeView === 'vault' ? 'page' : undefined} onClick={() => openView('vault')}><DatabaseBackup />Plan Vault</button>
         </nav>
+        <AccountBadge />
         <div className="sidebar-note"><Sparkles /><strong>Design wealth.<br />Live with clarity.</strong><p>ทุกตัวเลขคือแบบจำลอง ไม่ใช่การรับประกันผลตอบแทน</p></div>
       </aside>
 
@@ -225,24 +228,24 @@ function App() {
 
         {activeView === 'life' && <LifeCanvas plan={plan} setPlan={setPlan} />}
 
-        {activeView === 'portfolio' && <PortfolioStudio plan={plan} setPlan={setPlan} />}
+        {activeView === 'portfolio' && <FeatureGate entitlement="portfolioXray" title="Portfolio X-Ray"><PortfolioStudio plan={plan} setPlan={setPlan} /></FeatureGate>}
 
-        {activeView === 'scenario' && <ScenarioStudio plan={plan} setPlan={setPlan} />}
+        {activeView === 'scenario' && <FeatureGate entitlement="scenarioStudio" title="Scenario Studio"><ScenarioStudio plan={plan} setPlan={setPlan} /></FeatureGate>}
 
         {activeView === 'studio' && <section className="action-section" id="next-actions">
           <div className="action-intro"><span className="eyebrow light">NEXT BEST ACTION</span><h2>เดือนนี้ควรทำอะไรต่อ</h2><p>ข้อเสนอแนะเรียงจากผลกระทบต่อแผน โดยยังไม่มีการซื้อขายหรือเปลี่ยนพอร์ตอัตโนมัติ</p></div>
           <div className="action-list">{actions.map(({ icon: Icon, title, detail, tone, view }, index) => <button key={title} onClick={() => openView(view)}><span className={`action-icon ${tone}`}><Icon /></span><span><small>0{index + 1}</small><strong>{title}</strong><em>{detail}</em></span><ArrowUpRight /></button>)}</div>
         </section>}
 
-        {activeView === 'retirement' && <RetirementStudio plan={plan} setPlan={setPlan} />}
+        {activeView === 'retirement' && <FeatureGate entitlement="retirementStudio" title="Retirement Studio"><RetirementStudio plan={plan} setPlan={setPlan} /></FeatureGate>}
 
-        {activeView === 'protection' && <ProtectionStudio plan={plan} setPlan={setPlan} />}
+        {activeView === 'protection' && <FeatureGate entitlement="protectionStudio" title="Protection Gap"><ProtectionStudio plan={plan} setPlan={setPlan} /></FeatureGate>}
 
-        {activeView === 'tax' && <TaxStudio plan={plan} setPlan={setPlan} />}
+        {activeView === 'tax' && <FeatureGate entitlement="taxStudio" title="Thailand Tax"><TaxStudio plan={plan} setPlan={setPlan} /></FeatureGate>}
 
-        {activeView === 'legacy' && <LegacyStudio plan={plan} setPlan={setPlan} />}
+        {activeView === 'legacy' && <FeatureGate entitlement="legacyStudio" title="Family & Legacy"><LegacyStudio plan={plan} setPlan={setPlan} /></FeatureGate>}
 
-        {activeView === 'data' && <DataStudio plan={plan} setPlan={setPlan} />}
+        {activeView === 'data' && <FeatureGate entitlement="dataStudio" title="Data Studio"><DataStudio plan={plan} setPlan={setPlan} /></FeatureGate>}
 
         {activeView === 'reviews' && <WealthReviewStudio plan={plan} setPlan={setPlan} />}
 
