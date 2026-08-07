@@ -1,0 +1,122 @@
+name: Release boundary CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: app
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+
+      - name: Install locked dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Test with coverage thresholds
+        run: npm run test:coverage
+
+      - name: Test external review artifact integrity
+        run: npm run test:review-verifier
+
+      - name: Enforce local-only and no-transaction boundaries
+        run: npm run check:boundaries
+
+      - name: Audit dependencies
+        run: npm audit --audit-level=high
+
+      - name: Build production bundle
+        run: npm run build
+
+      - name: Start production preview
+        shell: bash
+        run: |
+          npm run preview -- --host 127.0.0.1 --port 5173 > "$RUNNER_TEMP/flow-preview.log" 2>&1 &
+          for attempt in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:5173 >/dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat "$RUNNER_TEMP/flow-preview.log"
+          exit 1
+
+      - name: Run disposable Chrome critical journeys
+        shell: bash
+        run: |
+          browser_path="$(command -v google-chrome || command -v google-chrome-stable)"
+          node scripts/critical-journey-e2e.mjs "$browser_path" github-chrome-desktop 9331 none 1440 1000
+          node scripts/critical-journey-e2e.mjs "$browser_path" github-chrome-mobile 9332 none 390 844
+
+      - name: Install priority WebKit test engine
+        run: npx playwright install --with-deps webkit
+
+      - name: Run axe WCAG audits in Chrome and WebKit
+        run: npm run test:a11y
+
+      - name: Run responsive accessibility matrix in Chrome and WebKit
+        run: npm run test:a11y:layout
+
+      - name: Run priority WebKit critical journeys
+        run: npm run test:e2e:cross-browser -- webkit
+
+      - name: Run LLM connector UI contract
+        run: npm run test:e2e:llm-connectors
+
+      - name: Run Final Gate acceptance snapshot contract
+        run: npm run test:e2e:acceptance
+
+      - name: Run Studio chart and grouped-number interaction contract
+        run: npm run test:e2e:studio-interactions
+
+      - name: Build privacy-safe external review bundle
+        run: npm run evidence:external-review
+
+      - name: Verify fail-closed external review response template
+        run: npm run verify:external-review -- --latest --expect-template
+
+      - name: Upload release evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: flow-alpha-ci-evidence
+          path: |
+            app/dist/
+            app/coverage/coverage-summary.json
+            app/work/e2e/
+            app/work/cross-browser/
+            app/work/llm-connectors/
+            app/work/acceptance-snapshot/
+            app/work/studio-interactions/
+            app/work/accessibility/
+            app/work/responsive-accessibility/
+            app/work/external-review/
+          if-no-files-found: warn
+          retention-days: 14
