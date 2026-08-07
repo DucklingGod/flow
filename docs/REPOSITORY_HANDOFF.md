@@ -4,9 +4,9 @@
 
 - Local branch: `main`
 - Git remote: `origin` points to `https://github.com/DucklingGod/flow.git`
-- Remote state verified on 2026-08-07: `origin/main` points to initial commit `c701d6219e495d7a883a21e50188a79abfbaed3e`.
-- Local state: `main` tracks `origin/main` and the post-push working tree was clean.
-- Hosted GitHub Actions evidence: the push has been completed; workflow completion still needs to be recorded because this workstation has no authenticated GitHub CLI session.
+- Public remote state verified on 2026-08-07: `origin/main` is readable through the GitHub API and contains the published alpha history.
+- Local state: `main` tracks `origin/main`; use `git rev-parse HEAD` and `git ls-remote origin refs/heads/main` to verify the exact current SHA after each push.
+- Hosted GitHub Actions evidence can be inspected through the public API without an authenticated GitHub CLI session. The exact successful workflow URL and SHA still must be recorded before hosted CI is treated as release evidence.
 
 The local release-gate mirror currently passes lint, typecheck, automated tests and coverage thresholds, the release-boundary scan across all reviewed source files and 10 disabled remote/transaction rollout flags, dependency audit, and the production build. The desktop/mobile Product Acceptance Snapshot contract also passes with four traceable questions, five pending-user actions, no plan mutation, and localhost-only requests. The generated review-response template is hash-bound and fail-closed; completed external signatures and Product Owner acceptance remain pending. This evidence proves the working tree passed locally; it does not prove that GitHub-hosted CI has run or that the Final Gate was approved.
 

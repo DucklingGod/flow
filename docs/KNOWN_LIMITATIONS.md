@@ -21,7 +21,7 @@ This list is part of release evidence. It documents current constraints; it does
 
 ## Product and operations limits
 
-- Accounts, hosted identity, cloud persistence, household/advisor collaboration, sharing links, and external analytics are disabled. A local encrypted-envelope/offline-queue preflight exists, but it has no persisted key, account, device registry, server transport, or UI path and the `cloudSync` flag remains false. Sharing remains deferred to P9.
+- Accounts, hosted identity, cloud persistence, household/advisor collaboration, sharing links, and external analytics are disabled. A local encrypted-envelope/offline-queue preflight exists and includes bounded opaque IndexedDB persistence for test-enabled drills, but it has no persisted key, account, device registry, server transport, or UI path and production `cloudSync` remains false. Sharing remains deferred to P9.
 - Local Plan Vault supports version history, encrypted backup, restore, conflict staging, export, and deletion in the current browser profile; loss of both the browser profile and backup is not recoverable.
 - There is no real trading, transfer/payment, direct debit, insurance purchase, tax filing, or transaction scheduling endpoint. Approve creates only a reversible local action.
 - The ngrok link is for UI inspection. A `127.0.0.1` LM Studio endpoint refers to the device opening the page and works only when Flow is opened on the same computer; no unauthenticated public model proxy is provided.

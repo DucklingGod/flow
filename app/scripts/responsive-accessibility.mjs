@@ -188,13 +188,22 @@ async function auditProfile(browser, engine, profile) {
   }
 }
 
+async function auditProfileWithRetry(browser, engine, profile) {
+  try {
+    return await auditProfile(browser, engine, profile)
+  } catch (firstError) {
+    console.warn(`Responsive audit retry: ${engine}/${profile.name}: ${firstError instanceof Error ? firstError.message : 'unknown error'}`)
+    return auditProfile(browser, engine, profile)
+  }
+}
+
 const report = { runId, profiles: selectedProfiles, engines: [], failures: [] }
 for (const engine of requestedEngines) {
   let browser
   try {
     browser = await launch(engine)
     for (const profile of selectedProfiles) {
-      const result = await auditProfile(browser, engine, profile)
+      const result = await auditProfileWithRetry(browser, engine, profile)
       report.engines.push(result)
       report.failures.push(...result.failures.map((failure) => ({ engine, profile: profile.name, ...failure })))
     }
@@ -214,4 +223,11 @@ console.log(JSON.stringify({
   failures: report.failures,
   artifactDir,
 }, null, 2))
-if (report.failures.length) process.exitCode = 1
+if (report.failures.length) {
+  for (const failure of report.failures) {
+    const location = [failure.engine, failure.profile, failure.route].filter(Boolean).join('/') || 'responsive-matrix'
+    const detail = failure.message ? `${failure.type}: ${failure.message}` : failure.type
+    console.error(`::error title=Responsive accessibility (${location})::${detail.replaceAll(/\r?\n/g, ' ')}`)
+  }
+  process.exitCode = 1
+}

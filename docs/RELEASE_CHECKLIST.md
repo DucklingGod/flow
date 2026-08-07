@@ -3,7 +3,7 @@
 ## Automated gates
 
 - [x] TypeScript typecheck and Oxlint
-- [x] 242-test Vitest regression suite across 42 files plus 5 Node verifier integrity tests
+- [x] 244-test Vitest regression suite across 42 files plus 5 Node verifier integrity tests
 - [x] Domain/data-platform coverage remains above configured thresholds
 - [x] Production build has no chunk-size warning
 - [x] Route-level code splitting verified on desktop/mobile
@@ -35,7 +35,7 @@
 
 - [x] Remote/transaction capability flags are all false
 - [x] Backup encryption, wrong-password refusal, report HTML escaping, CSV formula neutralization, and safe diagnostics have tests
-- [x] Local delete covers plan, snapshots, fallback keys, and market cache
+- [x] Local delete covers plan, snapshots, disabled encrypted sync queue, fallback keys, and market cache
 - [x] Disposable IndexedDB integration drill covers snapshot/export/stage/restore/history import/delete and metric consent/revoke
 - [x] Schema v1–v9 migration pins prior plans to the legacy calculation model; model adoption, engine dispatch, before-update snapshot, and report provenance have regression tests
 - [x] `npm audit` reports 0 vulnerabilities; credential-shaped and prohibited transaction-endpoint scans report 0 hits
@@ -57,6 +57,7 @@
 - [x] Client-owned cloud-key lifecycle and recovery transition contract
 - [x] Deterministic sync-head/offline-journal conflict contract with no silent last-write-wins
 - [x] Client preflight encrypts opaque sync envelopes with non-extractable AES-GCM keys and authenticated resource/revision metadata; queue decisions require authorization and consent, block revoked devices, bind idempotent receipts, reject replay substitution, bound retries, and force concurrent changes to merge review while the real cloud-sync flag remains off
+- [x] Disabled sync-queue persistence accepts only valid opaque lifecycle states, caps IndexedDB at 25 items, removes acknowledged items, has no localStorage fallback, and is purged by complete local deletion; no production enqueue or transport path exists
 - [ ] Hosted identity/backend authorization, cryptography, recovery, consent, encrypted export, complete-scope purge, and offline-sync implementation drills
 - [x] Consent/revoke/export/delete and backup/key-envelope purge executable contract verification
 - [ ] Priority cross-browser critical-journey matrix (Chrome, Edge, and Playwright WebKit 26.5 desktop/mobile passed; Safari-browser evidence still pending; Firefox is retained as best-effort and is not a release blocker)

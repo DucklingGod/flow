@@ -72,8 +72,8 @@ function consentMatches(dataUse: RemoteDataUseDecision) {
   return dataUse.allowed && dataUse.capability === 'cloudSync'
 }
 
-function validQueueItem(item: SyncQueueItem) {
-  return item.id === item.envelope.mutationId
+export function validateSyncQueueItem(item: SyncQueueItem) {
+  const common = item.id === item.envelope.mutationId
     && item.createdAt === item.envelope.createdAt
     && Number.isSafeInteger(item.attempts)
     && item.attempts >= 0
@@ -82,6 +82,19 @@ function validQueueItem(item: SyncQueueItem) {
     && (item.lastAttemptAt === null || parsedTime(item.lastAttemptAt) !== null)
     && (item.nextAttemptAt === null || parsedTime(item.nextAttemptAt) !== null)
     && validateSyncEnvelopeStructure(item.envelope)
+  if (!common) return false
+  if (item.status === 'pending') return item.attempts === 0 && item.lastAttemptAt === null && item.nextAttemptAt === null && item.failureCode === null && item.receipt === null
+  if (item.status === 'inFlight') return item.attempts >= 1 && item.lastAttemptAt !== null && item.nextAttemptAt === null && item.failureCode === null && item.receipt === null
+  if (item.status === 'retrying') return item.attempts >= 1 && item.attempts < maximumAttempts && item.lastAttemptAt !== null && item.nextAttemptAt !== null && item.failureCode !== null && validToken(item.failureCode) && item.receipt === null
+  if (item.status === 'acked') return item.attempts >= 1 && item.nextAttemptAt === null && item.failureCode === null && item.receipt !== null && receiptMatchesItem(item, item.receipt, ['accepted', 'duplicate'])
+  if (item.status === 'conflict') return item.attempts >= 1 && item.nextAttemptAt === null && item.failureCode === 'remote-conflict' && item.receipt !== null && receiptMatchesItem(item, item.receipt, ['conflict'])
+  return item.status === 'permanentFailure'
+    && item.attempts >= 1
+    && item.lastAttemptAt !== null
+    && item.nextAttemptAt === null
+    && item.failureCode !== null
+    && validToken(item.failureCode)
+    && (item.receipt === null || receiptMatchesItem(item, item.receipt, ['deviceRevoked', 'rejected']))
 }
 
 export function createSyncQueueItem(
@@ -116,7 +129,7 @@ export function planSyncAttempt(
   flags: Readonly<Record<ReleaseCapability, boolean>> = releaseFlags,
 ): SyncAttemptPlan {
   if (!flags.cloudSync) return { kind: 'blocked', reason: 'cloud-sync-disabled' }
-  if (!validQueueItem(item) || parsedTime(context.now) === null) return { kind: 'blocked', reason: 'invalid-item' }
+  if (!validateSyncQueueItem(item) || parsedTime(context.now) === null) return { kind: 'blocked', reason: 'invalid-item' }
   if (['acked', 'conflict', 'permanentFailure'].includes(item.status)) return { kind: 'blocked', reason: 'terminal' }
   if (!authorizationMatches(item.envelope, context.authorization)) return { kind: 'blocked', reason: 'authorization-required' }
   if (!consentMatches(context.dataUse)) return { kind: 'blocked', reason: 'consent-required' }
@@ -138,12 +151,12 @@ export function planSyncAttempt(
 }
 
 export function markSyncAttemptStarted(item: SyncQueueItem, plan: SyncAttemptPlan, startedAt: string): SyncQueueItem | null {
-  if (!validQueueItem(item) || plan.kind !== 'ready' || !['pending', 'retrying'].includes(item.status) || parsedTime(startedAt) === null || plan.request.idempotencyKey !== item.id) return null
+  if (!validateSyncQueueItem(item) || plan.kind !== 'ready' || !['pending', 'retrying'].includes(item.status) || parsedTime(startedAt) === null || plan.request.idempotencyKey !== item.id) return null
   return { ...item, status: 'inFlight', attempts: item.attempts + 1, lastAttemptAt: startedAt, nextAttemptAt: null, failureCode: null }
 }
 
 export function recordTransientSyncFailure(item: SyncQueueItem, failureCode: string, failedAt: string): SyncQueueItem | null {
-  if (!validQueueItem(item) || item.status !== 'inFlight' || !validToken(failureCode) || parsedTime(failedAt) === null || item.attempts < 1) return null
+  if (!validateSyncQueueItem(item) || item.status !== 'inFlight' || !validToken(failureCode) || parsedTime(failedAt) === null || item.attempts < 1) return null
   if (item.attempts >= maximumAttempts) return { ...item, status: 'permanentFailure', nextAttemptAt: null, failureCode }
   const delay = Math.min(60 * 60 * 1_000, 5_000 * (2 ** (item.attempts - 1)))
   return { ...item, status: 'retrying', nextAttemptAt: new Date((parsedTime(failedAt) as number) + delay).toISOString(), failureCode }
@@ -156,8 +169,16 @@ function validReceipt(receipt: SyncServerReceipt) {
     && (receipt.acceptedDigest === null || digestPattern.test(receipt.acceptedDigest))
 }
 
+function receiptMatchesItem(item: SyncQueueItem, receipt: SyncServerReceipt, allowedStatuses: readonly SyncServerReceipt['status'][]) {
+  if (!validReceipt(receipt) || !allowedStatuses.includes(receipt.status) || item.lastAttemptAt === null) return false
+  if (receipt.mutationId !== item.id || receipt.planId !== item.envelope.planId || receipt.householdId !== item.envelope.householdId || receipt.deviceId !== item.envelope.deviceId) return false
+  if ((parsedTime(receipt.receivedAt) as number) < (parsedTime(item.lastAttemptAt) as number)) return false
+  if (['accepted', 'duplicate'].includes(receipt.status)) return receipt.acceptedRevision !== null && receipt.acceptedRevision >= item.envelope.localRevision && receipt.acceptedDigest === item.envelope.localDigest
+  return true
+}
+
 export function applySyncReceipt(item: SyncQueueItem, receipt: SyncServerReceipt): SyncQueueItem | null {
-  if (!validQueueItem(item) || item.status !== 'inFlight' || !validReceipt(receipt)) return null
+  if (!validateSyncQueueItem(item) || item.status !== 'inFlight' || !validReceipt(receipt)) return null
   if (item.receipt) return JSON.stringify(item.receipt) === JSON.stringify(receipt) ? item : null
   if (receipt.mutationId !== item.id || receipt.planId !== item.envelope.planId || receipt.householdId !== item.envelope.householdId || receipt.deviceId !== item.envelope.deviceId) return null
   const lastAttempt = parsedTime(item.lastAttemptAt) as number

@@ -71,6 +71,7 @@ This register turns every task in `PLAN.md` into an auditable delivery item. `PL
 | P9-T01a | done as design contract | ENG+SECURITY / PRODUCT | P9-T00 | M | 14 authorization/key/sync adversarial tests | ADR-002; remote implementation remains off |
 | P9-T01b | done as lifecycle contract | ENG+SECURITY / PRODUCT | P9-T01a | M | 8 consent/export/delete/purge adversarial tests | complete-scope manifest; hosted purge drill pending |
 | P9-T01c | done as client preflight; transport disabled | ENG+SECURITY / SECURITY+PRODUCT | P9-T01a–b | M | 9 AES-GCM envelope/authorization/consent/offline/retry/conflict/receipt adversarial tests | non-extractable client key + opaque queue contract; `cloudSync=false`, no endpoint/key persistence/share |
+| P9-T01d | done as disabled local persistence preflight | ENG+SECURITY / SECURITY+PRODUCT | P9-T01c | S | IndexedDB cap/ACK/delete/malformed-state integration tests | opaque queue only, max 25, no localStorage fallback; `cloudSync=false`, no transport/key persistence/share |
 | P9-T02 | partial | ENG / PRODUCT | P9-T01 for remote share | L | restore/conflict/export tests | local history/backup/report done; share off |
 | P9-T02a | done | ENG / PRODUCT | P9-T00 | M | 11-section conflict/reference tests | conflict-aware restore |
 | P9-T03 | partial | ENG+SECURITY / PRODUCT | approved collector/operations | L | privacy/error/rollback drills | local diagnostics/runbook done |

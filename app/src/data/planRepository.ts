@@ -1,6 +1,8 @@
 import Dexie, { type EntityTable } from 'dexie'
+import { releaseFlags, type ReleaseCapability } from '../config/releaseFlags'
 import { assertTextSize, MAX_PLAN_IMPORT_BYTES } from '../domain/importLimits'
 import { defaultPlan, migratePlan, parseImportablePlan, type WealthPlan } from '../domain/schema'
+import { validateSyncQueueItem, type SyncQueueItem } from '../domain/syncQueue'
 
 interface StoredPlan extends WealthPlan {}
 
@@ -18,14 +20,18 @@ export interface PlanSnapshot {
 const db = new Dexie('flow-wealth-studio') as Dexie & {
   plans: EntityTable<StoredPlan, 'id'>
   snapshots: EntityTable<PlanSnapshot, 'id'>
+  syncQueue: EntityTable<SyncQueueItem, 'id'>
 }
 
 db.version(1).stores({ plans: 'id, updatedAt' })
 db.version(2).stores({ plans: 'id, updatedAt', snapshots: 'id, createdAt, reason' })
+db.version(3).stores({ plans: 'id, updatedAt', snapshots: 'id, createdAt, reason', syncQueue: 'id, createdAt, status' })
 
 const fallbackKey = 'flow-wealth-plan-v1'
 const fallbackSnapshotsKey = 'flow-wealth-snapshots-v1'
 const MAX_SNAPSHOTS = 50
+const MAX_SYNC_QUEUE_ITEMS = 25
+const syncQueueIdPattern = /^[a-zA-Z0-9._:-]{1,128}$/
 
 function clonePlan(plan: WealthPlan) {
   return migratePlan(JSON.parse(JSON.stringify(plan)))
@@ -115,10 +121,46 @@ export async function restorePlanSnapshot(id: string) {
 }
 
 export async function clearLocalPlanningData() {
-  try { await db.transaction('rw', db.plans, db.snapshots, async () => { await db.plans.clear(); await db.snapshots.clear() }) }
+  try { await db.transaction('rw', db.plans, db.snapshots, db.syncQueue, async () => { await db.plans.clear(); await db.snapshots.clear(); await db.syncQueue.clear() }) }
   catch { /* fallback keys are still cleared below */ }
   localStorage.removeItem(fallbackKey)
   localStorage.removeItem(fallbackSnapshotsKey)
+}
+
+export type SyncQueuePersistenceResult = { ok: true; action: 'stored' | 'removed' } | { ok: false; reason: 'cloud-sync-disabled' | 'invalid-item' | 'storage-unavailable' }
+
+export async function persistEncryptedSyncQueueItem(
+  item: SyncQueueItem,
+  flags: Readonly<Record<ReleaseCapability, boolean>> = releaseFlags,
+): Promise<SyncQueuePersistenceResult> {
+  if (!flags.cloudSync) return { ok: false, reason: 'cloud-sync-disabled' }
+  if (!validateSyncQueueItem(item)) return { ok: false, reason: 'invalid-item' }
+  try {
+    await db.transaction('rw', db.syncQueue, async () => {
+      if (item.status === 'acked') await db.syncQueue.delete(item.id)
+      else {
+        await db.syncQueue.put(structuredClone(item))
+        const excess = await db.syncQueue.orderBy('createdAt').reverse().offset(MAX_SYNC_QUEUE_ITEMS).primaryKeys()
+        if (excess.length) await db.syncQueue.bulkDelete(excess)
+      }
+    })
+    return { ok: true, action: item.status === 'acked' ? 'removed' : 'stored' }
+  } catch { return { ok: false, reason: 'storage-unavailable' } }
+}
+
+export async function listEncryptedSyncQueueItems(
+  flags: Readonly<Record<ReleaseCapability, boolean>> = releaseFlags,
+): Promise<SyncQueueItem[]> {
+  if (!flags.cloudSync) return []
+  try {
+    const rows = await db.syncQueue.orderBy('createdAt').toArray()
+    return rows.filter(validateSyncQueueItem).map((item) => structuredClone(item))
+  } catch { return [] }
+}
+
+export async function deleteEncryptedSyncQueueItem(id: string) {
+  if (!syncQueueIdPattern.test(id)) return false
+  try { await db.syncQueue.delete(id); return true } catch { return false }
 }
 
 export function exportPlan(plan: WealthPlan) {

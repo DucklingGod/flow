@@ -234,8 +234,8 @@ for (const item of criticalCandidates) {
   if (!criticalByFamilyViewport.has(key)) criticalByFamilyViewport.set(key, item)
 }
 const criticalJourneys = [...criticalByFamilyViewport.values()].filter((item) => ['1440x1000', '390x844'].includes(`${item.viewport.width}x${item.viewport.height}`))
-if (axeSummary.scans < 30 || !axeSummary.engines.some((item) => item.engine === 'chrome') || axeSummary.violations || axeSummary.incomplete || axeSummary.failures) throw new Error(`Axe evidence is not release-clean: ${JSON.stringify(axeSummary)}`)
-if (responsiveSummary.routeAudits < 52 || !responsiveSummary.engines.some((item) => item.startsWith('chrome ')) || responsiveSummary.failures) throw new Error(`Responsive accessibility evidence is not release-clean: ${JSON.stringify(responsiveSummary)}`)
+if (axeSummary.scans < 60 || !['chrome', 'webkit'].every((engine) => axeSummary.engines.some((item) => item.engine === engine)) || axeSummary.violations || axeSummary.incomplete || axeSummary.failures) throw new Error(`Axe evidence is not release-clean: ${JSON.stringify(axeSummary)}`)
+if (responsiveSummary.routeAudits < 104 || !['chrome ', 'webkit '].every((engine) => responsiveSummary.engines.some((item) => item.startsWith(engine))) || responsiveSummary.failures) throw new Error(`Responsive accessibility evidence is not release-clean: ${JSON.stringify(responsiveSummary)}`)
 if (webkitSummary.reports.length !== 2 || webkitSummary.failures) throw new Error(`WebKit evidence is not release-clean: ${JSON.stringify(webkitSummary)}`)
 if (llmConnectorSummary.reports.length !== 2 || llmConnectorSummary.failures || llmConnectorSummary.reports.some((report) => report.structuredItems < 2 || !report.zdr || report.tools || report.htmlExecuted || !report.credentialSessionOnly || report.actualExternalRequest)) throw new Error(`LLM connector UI evidence is not release-clean: ${JSON.stringify(llmConnectorSummary)}`)
 if (acceptanceSnapshotSummary.reports.length !== 2 || acceptanceSnapshotSummary.failures || acceptanceSnapshotSummary.reports.some((report) => report.questions !== 4 || report.monthlyActions < 1 || report.decision !== 'pending' || !report.printablePacket || report.planMutation || report.overflow || report.networkOrigins.some((origin) => !/^http:\/\/(127\.0\.0\.1|localhost):\d+$/.test(origin)))) throw new Error(`Acceptance snapshot evidence is not release-clean: ${JSON.stringify(acceptanceSnapshotSummary)}`)
@@ -267,6 +267,7 @@ const reviewFiles = [
   'app/src/components/LifeCanvas.tsx', 'app/src/components/PortfolioStudio.tsx', 'app/src/components/ProtectionStudio.tsx', 'app/src/components/RetirementStudio.tsx',
   'app/src/components/ScenarioStudio.tsx', 'app/src/components/TaxStudio.tsx', 'app/src/components/WealthStudio.tsx', 'app/scripts/studio-interactions-e2e.mjs', 'app/vitest.config.ts',
   'docs/ADR-002-REMOTE-SECURITY-FOUNDATION.md', 'app/src/domain/syncEnvelope.ts', 'app/src/domain/syncEnvelope.test.ts', 'app/src/domain/syncQueue.ts', 'app/src/domain/syncQueue.test.ts', 'vercel.json',
+  'app/src/data/planRepository.ts', 'app/src/data/planRepository.integration.test.ts', 'app/scripts/responsive-accessibility.mjs',
 ]
 const fileManifest = []
 for (const relativePath of reviewFiles) {
