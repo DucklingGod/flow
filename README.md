@@ -6,6 +6,35 @@ P9 includes a disabled client preflight for future encrypted sync: opaque AES-GC
 
 Current status: `1.0.0-alpha.3`. Product phases P0–P8 and the local Plan Vault slice are implemented. The direct LLM adapters are a user-initiated developer preview; the production `externalAi` rollout flag remains off until its privacy/security review is signed. Production remains gated by independent Thai financial/tax/legal review (G6), licensed provider reconciliation (G7), and G9 security, cross-browser, manual accessibility, recovery, and beta evidence. The GitHub CI verifies the repository's automated checks but does not waive those external gates.
 
+## Landing page, accounts, and subscription tiers
+
+The bare path `/` serves the marketing landing page; `/sign-in` and `/sign-up` serve
+the Clerk-backed auth pages with Google sign-in; the planner keeps its existing hash
+routes (`/#/studio`, `/#/vault`, …) unchanged. Freemium tiers (Free / Plus ฿149 / Pro
+฿349) are defined once in [entitlements.ts](app/src/domain/entitlements.ts) and drive
+the pricing table and the in-app gates alike. The full model, pricing rationale,
+enforcement architecture, and launch obligations are in [docs/MONETIZATION.md](docs/MONETIZATION.md).
+
+Authentication is optional at build time. Without `VITE_CLERK_PUBLISHABLE_KEY` the app
+runs **fully unlocked and fully local** — no sign-in, no gating, no network identity —
+which is how the automated browser suites and any self-hosted build execute. Configure
+it in `app/.env.local` to enable accounts:
+
+```powershell
+"VITE_CLERK_PUBLISHABLE_KEY=pk_test_xxx" | Out-File -Encoding utf8 app/.env.local
+```
+
+Google sign-in is enabled from the Clerk dashboard's social connections; a production
+instance requires your own Google Cloud OAuth credentials. Pin `@clerk/clerk-react`
+exactly — versions `>=5.9.0 <=5.61.5` carry a high-severity authorization-bypass
+advisory in the billing/plan-check path, and npm's `latest` tag still resolves inside
+that range.
+
+Client-side gating is a user-experience affordance, not an access control: every gated
+capability is computed locally, so bypassing a gate costs nothing and exposes no one.
+Server-side entitlement checks become mandatory before cloud sync, hosted AI, licensed
+provider data, or sharing ship. `cloudSync` remains `false`.
+
 ## Development
 
 ```powershell
