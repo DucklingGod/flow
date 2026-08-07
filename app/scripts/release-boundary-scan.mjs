@@ -54,9 +54,42 @@ for (const file of files) {
 
 const flagsPath = path.join(appRoot, 'src', 'config', 'releaseFlags.ts')
 const flags = await readFile(flagsPath, 'utf8')
-const remoteFlags = ['account', 'cloudSync', 'householdCollaboration', 'advisorSharing', 'externalAnalytics', 'externalAi', 'liveMarketRetrieval', 'tradeExecution', 'paymentOrTransfer', 'taxFiling']
-const unsafeFlags = remoteFlags.filter((flag) => !new RegExp(`\\b${flag}:\\s*false\\b`).test(flags))
+
+// Capabilities deliberately enabled for the commercial release. Everything else
+// that reaches off-device must still be explicitly false.
+const approvedRemoteFlags = ['account', 'subscriptionBilling']
+// The permanent product boundary. No gate approval unlocks these.
+const prohibitedFlags = ['tradeExecution', 'paymentOrTransfer', 'taxFiling']
+const gatedRemoteFlags = ['cloudSync', 'householdCollaboration', 'advisorSharing', 'externalAnalytics', 'externalAi', 'liveMarketRetrieval']
+
+const unsafeFlags = [...gatedRemoteFlags, ...prohibitedFlags].filter((flag) => !new RegExp(`\\b${flag}:\\s*false\\b`).test(flags))
 if (unsafeFlags.length) findings.push({ type: 'remote capability not explicitly false', flags: unsafeFlags })
+
+// A prohibited capability must never appear as true, in any form.
+const flippedProhibited = prohibitedFlags.filter((flag) => new RegExp(`\\b${flag}:\\s*true\\b`).test(flags))
+if (flippedProhibited.length) findings.push({ type: 'permanently prohibited capability enabled', flags: flippedProhibited })
+
+// An approved remote capability must still be declared, so silently deleting the
+// flag cannot be used to dodge the check above.
+const missingApproved = approvedRemoteFlags.filter((flag) => !new RegExp(`\\b${flag}:\\s*(true|false)\\b`).test(flags))
+if (missingApproved.length) findings.push({ type: 'approved remote capability flag is missing', flags: missingApproved })
+
+// Entitlement gating is a UX affordance, not an access control. If a paid
+// capability ever becomes the *only* thing standing between a user and a
+// server-side resource, that enforcement must live on the server.
+// The provider's plan check belongs in the auth adapter and nowhere else, so
+// entitlement decisions stay funnelled through the pure `entitlements` module
+// rather than being re-derived ad hoc in feature code.
+const authAdapterDirectory = `${path.sep}src${path.sep}auth${path.sep}`
+const clientOnlyEntitlementGuard = /\bhas\s*\(\s*\{\s*plan\s*:/
+for (const file of files.filter((item) => item.includes(`${path.sep}src${path.sep}`))) {
+  const content = await readFile(file, 'utf8')
+  for (const [index, line] of content.split(/\r?\n/).entries()) {
+    if (clientOnlyEntitlementGuard.test(line) && !file.includes(authAdapterDirectory)) {
+      findings.push({ type: 'billing check outside the auth adapter', file: path.relative(repoRoot, file).replaceAll('\\', '/'), line: index + 1 })
+    }
+  }
+}
 
 const workflowPath = path.join(repoRoot, '.github', 'workflows', 'ci.yml')
 const workflow = await readFile(workflowPath, 'utf8')
@@ -76,7 +109,9 @@ if (unsafeArtifactLines.length) findings.push({ type: 'release artifact upload i
 
 const report = {
   scannedFiles: files.length,
-  remoteFlagsChecked: remoteFlags.length,
+  approvedRemoteFlags,
+  gatedRemoteFlagsChecked: gatedRemoteFlags.length,
+  prohibitedFlagsChecked: prohibitedFlags.length,
   findings,
 }
 console.log(JSON.stringify(report, null, 2))

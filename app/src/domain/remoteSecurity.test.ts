@@ -10,11 +10,26 @@ const owner: RemoteSecurityContext = {
 }
 
 describe('remote authorization contract', () => {
-  it('denies every remote action under the actual alpha flags', () => {
+  it('denies every remote action under the actual shipped flags', () => {
     for (const action of remoteActions) {
       const decision = authorizeRemoteAction({ action, resourceHouseholdId: 'household-a', context: owner, now })
-      expect(decision).toMatchObject({ allowed: false, reason: 'capability-disabled' })
+      expect(decision.allowed, action).toBe(false)
     }
+  })
+
+  it('keeps every cloud and sharing action capability-disabled while sync stays off', () => {
+    // `recoverAccount` is excluded: hosted identity now ships, so that action is
+    // capability-enabled and denied on its own merits instead.
+    for (const action of remoteActions.filter((item) => item !== 'recoverAccount')) {
+      const decision = authorizeRemoteAction({ action, resourceHouseholdId: 'household-a', context: owner, now })
+      expect(decision, action).toMatchObject({ allowed: false, reason: 'capability-disabled' })
+    }
+  })
+
+  it('denies account recovery on the recovery factor rather than the capability flag', () => {
+    const withoutFactor = authorizeRemoteAction({ action: 'recoverAccount', resourceHouseholdId: 'household-a', context: owner, now })
+    expect(withoutFactor.allowed).toBe(false)
+    if (!withoutFactor.allowed) expect(withoutFactor.reason).not.toBe('capability-disabled')
   })
 
   it('implements the documented role matrix without implicit permissions', () => {

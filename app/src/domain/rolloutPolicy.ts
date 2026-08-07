@@ -1,4 +1,4 @@
-import { releaseFlags, remoteCapabilities, transactionCapabilities, type ReleaseCapability } from '../config/releaseFlags'
+import { approvedRemoteCapabilities, prohibitedCapabilities, releaseFlags, remoteCapabilities, type ReleaseCapability } from '../config/releaseFlags'
 
 export const rolloutStages = ['off', 'internal', 'closedBeta', 'canary', 'production'] as const
 export type RolloutStage = typeof rolloutStages[number]
@@ -25,6 +25,9 @@ export const rolloutEvidenceIds = [
   'externalBetaAcceptance',
   'sharingSecurityReview',
   'externalAiReview',
+  // Taking money in Thailand: VAT registration, refund/cancellation terms,
+  // consumer-protection disclosure, and PDPA basis for billing records.
+  'billingComplianceReview',
   'productOwnerApproval',
 ] as const
 export type RolloutEvidenceId = typeof rolloutEvidenceIds[number]
@@ -94,6 +97,17 @@ function requiredEvidence(targetStage: Exclude<RolloutStage, 'off'>, flags: Read
   if (flags.householdCollaboration || flags.advisorSharing) required.add('sharingSecurityReview')
   if (flags.externalAi) required.add('externalAiReview')
   if (flags.liveMarketRetrieval) required.add('g7ProviderLegalReview')
+  // Hosted identity introduces credential recovery and personal-data handling
+  // that a local-only build never had, at every stage it is enabled.
+  if (flags.account) {
+    required.add('authenticationRecoveryDrill')
+    required.add('privacyReview')
+  }
+  // Charging users adds consumer-protection, tax, and billing-record duties.
+  if (flags.subscriptionBilling) {
+    required.add('billingComplianceReview')
+    required.add('privacyReview')
+  }
   return [...required]
 }
 
@@ -113,10 +127,13 @@ export function evaluateRolloutPromotion(request: RolloutPromotionRequest): Roll
   const now = Date.parse(request.now)
   if (!Number.isFinite(now)) return denied('invalid-time')
   const flags = request.flags ?? releaseFlags
-  const prohibited = transactionCapabilities.filter((capability) => flags[capability])
+  const prohibited = prohibitedCapabilities.filter((capability) => flags[capability])
   if (prohibited.length) return denied('prohibited-capability', [], [], prohibited)
-  const enabledRemote = remoteCapabilities.filter((capability) => flags[capability])
-  if (target === 'internal' && enabledRemote.length) return denied('remote-capability-before-beta', [], [], enabledRemote)
+  // Commercially approved capabilities (hosted identity, subscription billing)
+  // may ship before beta; they carry their own evidence obligations instead —
+  // see `requiredEvidence`. Every other off-device capability still may not.
+  const unapprovedRemote = remoteCapabilities.filter((capability) => flags[capability] && !(approvedRemoteCapabilities as readonly ReleaseCapability[]).includes(capability))
+  if (target === 'internal' && unapprovedRemote.length) return denied('remote-capability-before-beta', [], [], unapprovedRemote)
   const required = requiredEvidence(target as Exclude<RolloutStage, 'off'>, flags)
   const missing = required.filter((id) => !request.evidence[id])
   if (missing.length) return denied('missing-evidence', missing)

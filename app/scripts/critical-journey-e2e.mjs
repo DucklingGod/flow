@@ -196,13 +196,16 @@ async function auditReleaseControls() {
     return {
       badgeCount: badges.length,
       localOn: badges.filter((item) => item.classList.contains('local-on')).length,
+      remoteOn: badges.filter((item) => item.classList.contains('remote-on')).length,
       remoteOff: badges.filter((item) => item.classList.contains('remote-off')).length,
       labels: badges.map((item) => item.firstChild?.textContent?.trim()).filter(Boolean),
       pageOverflow: document.documentElement.scrollWidth > document.documentElement.clientWidth,
       panelOverflow: panel ? panel.scrollWidth > panel.clientWidth : true,
     }
   })()`)
-  if (!controls || controls.badgeCount !== 14 || controls.localOn !== 4 || controls.remoteOff !== 10 || controls.pageOverflow || controls.panelOverflow) {
+  // 4 local capabilities on, 2 commercially approved remote capabilities on
+  // (account, subscriptionBilling), 9 remaining remote/transaction flags off.
+  if (!controls || controls.badgeCount !== 15 || controls.localOn !== 4 || controls.remoteOn !== 2 || controls.remoteOff !== 9 || controls.pageOverflow || controls.panelOverflow) {
     throw new Error(`Release controls failed: ${JSON.stringify(controls)}`)
   }
   await screenshotElement('09-release-controls', '.release-controls')

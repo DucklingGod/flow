@@ -12,11 +12,33 @@ const approved = (id: RolloutEvidenceId, overrides = {}) => ({
   ...overrides,
 })
 const fullEvidence = Object.fromEntries(rolloutEvidenceIds.map((id) => [id, approved(id)])) as RolloutEvidenceRegister
+/** Flags for a purely local build, so stage/evidence rules can be tested in isolation. */
+const localOnlyFlags = { ...releaseFlags, account: false, subscriptionBilling: false }
 
 describe('staged rollout policy', () => {
   it('allows only the first internal step when the local release mirror is approved', () => {
     const evidence = { localReleaseMirror: approved('localReleaseMirror') }
-    expect(evaluateRolloutPromotion({ currentStage: 'off', targetStage: 'internal', evidence, now })).toEqual({ allowed: true, targetStage: 'internal', requiredEvidence: ['localReleaseMirror'] })
+    expect(evaluateRolloutPromotion({ currentStage: 'off', targetStage: 'internal', evidence, flags: localOnlyFlags, now })).toEqual({ allowed: true, targetStage: 'internal', requiredEvidence: ['localReleaseMirror'] })
+  })
+
+  it('requires identity and billing evidence once accounts and subscriptions ship', () => {
+    const evidence = { localReleaseMirror: approved('localReleaseMirror') }
+    const decision = evaluateRolloutPromotion({ currentStage: 'off', targetStage: 'internal', evidence, now })
+    expect(decision).toMatchObject({ allowed: false, reason: 'missing-evidence' })
+    if (!decision.allowed) {
+      expect(decision.missingEvidence).toContain('authenticationRecoveryDrill')
+      expect(decision.missingEvidence).toContain('privacyReview')
+      expect(decision.missingEvidence).toContain('billingComplianceReview')
+    }
+  })
+
+  it('promotes to internal with accounts and billing once their evidence is approved', () => {
+    const decision = evaluateRolloutPromotion({ currentStage: 'off', targetStage: 'internal', evidence: fullEvidence, now })
+    expect(decision.allowed).toBe(true)
+    if (decision.allowed) {
+      expect(decision.requiredEvidence).toContain('billingComplianceReview')
+      expect(decision.requiredEvidence).toContain('authenticationRecoveryDrill')
+    }
   })
 
   it('rejects unknown, skipped, repeated, reverse, and invalid-time transitions', () => {
@@ -46,7 +68,7 @@ describe('staged rollout policy', () => {
       approved('hostedCi'),
       approved('localReleaseMirror', { artifactId: '../bad' }),
     ]) {
-      const decision = evaluateRolloutPromotion({ currentStage: 'off', targetStage: 'internal', evidence: { localReleaseMirror: record }, now })
+      const decision = evaluateRolloutPromotion({ currentStage: 'off', targetStage: 'internal', evidence: { localReleaseMirror: record }, flags: localOnlyFlags, now })
       expect(decision.allowed).toBe(false)
       if (!decision.allowed) expect(decision.reason).toBe('invalid-evidence')
     }
@@ -59,9 +81,16 @@ describe('staged rollout policy', () => {
     }
   })
 
-  it('does not allow any remote capability in the internal stage', () => {
+  it('does not allow an unapproved remote capability in the internal stage', () => {
     const decision = evaluateRolloutPromotion({ currentStage: 'off', targetStage: 'internal', evidence: fullEvidence, flags: { ...releaseFlags, account: true, cloudSync: true }, now })
-    expect(decision).toMatchObject({ allowed: false, reason: 'remote-capability-before-beta', prohibitedCapabilities: ['account', 'cloudSync'] })
+    expect(decision).toMatchObject({ allowed: false, reason: 'remote-capability-before-beta', prohibitedCapabilities: ['cloudSync'] })
+  })
+
+  it('still blocks every other remote capability before beta', () => {
+    for (const capability of ['cloudSync', 'householdCollaboration', 'advisorSharing', 'externalAnalytics', 'externalAi', 'liveMarketRetrieval'] as const) {
+      const decision = evaluateRolloutPromotion({ currentStage: 'off', targetStage: 'internal', evidence: fullEvidence, flags: { ...releaseFlags, [capability]: true }, now })
+      expect(decision, capability).toMatchObject({ allowed: false, reason: 'remote-capability-before-beta' })
+    }
   })
 
   it('adds sharing and external-AI review only when those remote flags are requested', () => {
