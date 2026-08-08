@@ -432,7 +432,7 @@ main { min-width:0; padding:24px clamp(18px, 3vw, 46px) 40px; }
 .scenario-toolbar label { min-width:0; color:#56685f; font-size:var(--type-label); }
 .scenario-toolbar label > span, .scenario-toolbar label > small { display:block; }.scenario-toolbar label > small { margin-top:3px; color:var(--muted); font-size:var(--type-caption); }
 .scenario-toolbar input, .scenario-toolbar select { width:100%; min-width:0; margin-top:4px; padding:8px 9px; border:1px solid var(--line); border-radius:9px; background:#fafbf8; color:var(--ink); font-size:var(--type-body-sm); }
-.scenario-toolbar button { display:flex; justify-content:center; align-items:center; gap:6px; min-height:37px; border:0; border-radius:10px; padding:8px 12px; color:white; background:var(--forest); cursor:pointer; font-size:var(--type-label); }.scenario-toolbar button:disabled { opacity:.45; }.scenario-toolbar button svg { width:14px; }
+.scenario-toolbar button { display:flex; justify-content:center; align-items:center; gap:6px; min-height:37px; border:0; border-radius:10px; padding:8px 12px; color:white; background:var(--forest); cursor:pointer; font-size:var(--type-label); }.scenario-toolbar button:disabled { background:#5f7167; color:#fff; cursor:wait; }.scenario-toolbar button svg { width:14px; }
 .scenario-toolbar .rerun-seed-button { align-self:start; margin-top:calc(1em + 14px); }
 .scenario-error { display:flex; align-items:center; gap:7px; margin-top:9px; padding:10px 12px; border-radius:12px; color:#8e4d47; background:#fff0ee; font-size:var(--type-body-sm); }.scenario-error svg { width:16px; }
 .simulation-metrics { display:grid; grid-template-columns:1.15fr repeat(3, 1fr) 1.2fr; gap:8px; margin-top:10px; }
