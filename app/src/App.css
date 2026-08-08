@@ -894,7 +894,7 @@ footer p { max-width:700px; margin:0; text-align:right; font-size:var(--type-lab
 .tornado-list small { color:#5c6d65; }
 
 /* Entitlement gate shown in place of a studio the current tier does not include. */
-.feature-gate { display:grid; grid-template-columns:54px minmax(0,1fr) auto; align-items:center; gap:18px; padding:26px; border:1px solid #c8d99d; border-radius:24px 24px 8px 24px; background:linear-gradient(120deg, rgba(247,255,226,.96), rgba(255,255,250,.94)); box-shadow:0 14px 34px rgba(56,76,47,.08); }
+.feature-gate { margin-top:22px; scroll-margin-top:18px; display:grid; grid-template-columns:54px minmax(0,1fr) auto; align-items:center; gap:18px; padding:26px; border:1px solid #c8d99d; border-radius:24px 24px 8px 24px; background:linear-gradient(120deg, rgba(247,255,226,.96), rgba(255,255,250,.94)); box-shadow:0 14px 34px rgba(56,76,47,.08); }
 .feature-gate-icon { display:grid; place-items:center; width:54px; height:54px; border-radius:17px; background:#e1f3b7; color:#47692d; }
 .feature-gate-icon svg { width:24px; }
 .feature-gate-copy .eyebrow { color:#57655b; font-size:var(--type-caption); font-weight:700; letter-spacing:.13em; }
