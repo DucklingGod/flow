@@ -30,6 +30,25 @@ exactly — versions `>=5.9.0 <=5.61.5` carry a high-severity authorization-bypa
 advisory in the billing/plan-check path, and npm's `latest` tag still resolves inside
 that range.
 
+Surfaces that only exist with a key configured — the marketing pages, the Clerk auth
+pages, the upgrade gate, and the sidebar account row — are audited by a separate
+suite, because the main verification run builds without a key and cannot reach them:
+
+```powershell
+npm.cmd run test:keyed-surfaces
+npm.cmd run test:keyed-surfaces -- chrome
+```
+
+It checks WCAG violations, horizontal overflow, target sizes, console/runtime output,
+and network origins across desktop, the 1000 px collapsed sidebar rail, and mobile. It
+also asserts the contracts that only hold with a key: the real Clerk form mounts rather
+than the local-only card, gated studios show the upgrade gate for a signed-out visitor,
+open studios do not, and the sidebar account action collapses on the rail. In CI the
+same audit runs as the `verify-keyed-surfaces` job, which skips cleanly when no key is
+configured. Set the key as a repository secret or variable named
+`VITE_CLERK_PUBLISHABLE_KEY` to enable it. The audit runs signed out; the signed-in
+account row still has no automated coverage.
+
 Client-side gating is a user-experience affordance, not an access control: every gated
 capability is computed locally, so bypassing a gate costs nothing and exposes no one.
 Server-side entitlement checks become mandatory before cloud sync, hosted AI, licensed

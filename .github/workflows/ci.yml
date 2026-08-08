@@ -135,3 +135,78 @@ jobs:
             app/work/external-review/*/*.md
           if-no-files-found: warn
           retention-days: 14
+
+  # Surfaces that only exist once an identity provider is configured: the
+  # marketing pages, the Clerk auth pages, the upgrade gate, and the sidebar
+  # account row. The `verify` job above builds without a key, so none of them
+  # render there — three layout defects reached main through that gap.
+  #
+  # Runs in parallel with `verify` and skips cleanly when no key is configured,
+  # so forks and pull requests without access to the secret are unaffected.
+  verify-keyed-surfaces:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: app
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v7
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+
+      - name: Install locked dependencies
+        run: npm ci
+
+      - name: Detect identity provider key
+        id: key
+        env:
+          FLOW_CLERK_KEY: ${{ secrets.VITE_CLERK_PUBLISHABLE_KEY || vars.VITE_CLERK_PUBLISHABLE_KEY }}
+        run: |
+          if [ -n "$FLOW_CLERK_KEY" ]; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=false" >> "$GITHUB_OUTPUT"
+            echo "::notice title=Keyed surface audit::VITE_CLERK_PUBLISHABLE_KEY is not configured, so the marketing pages, auth pages, upgrade gate and account row are not verified by this run."
+          fi
+
+      - name: Build with the identity provider configured
+        if: steps.key.outputs.present == 'true'
+        env:
+          VITE_CLERK_PUBLISHABLE_KEY: ${{ secrets.VITE_CLERK_PUBLISHABLE_KEY || vars.VITE_CLERK_PUBLISHABLE_KEY }}
+        run: npm run build
+
+      - name: Start production preview
+        if: steps.key.outputs.present == 'true'
+        shell: bash
+        run: |
+          npm run preview -- --host 127.0.0.1 --port 5173 > "$RUNNER_TEMP/flow-keyed-preview.log" 2>&1 &
+          for attempt in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:5173 >/dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat "$RUNNER_TEMP/flow-keyed-preview.log"
+          exit 1
+
+      - name: Audit keyed surfaces
+        if: steps.key.outputs.present == 'true'
+        run: npm run test:keyed-surfaces -- chrome
+
+      - name: Upload keyed surface evidence
+        if: always() && steps.key.outputs.present == 'true'
+        uses: actions/upload-artifact@v7
+        with:
+          name: flow-keyed-surface-evidence
+          path: |
+            app/work/keyed-surfaces/latest-report.json
+            app/work/keyed-surfaces/*/report.json
+          if-no-files-found: warn
+          retention-days: 14

@@ -23,7 +23,8 @@
     "check:boundaries": "node scripts/release-boundary-scan.mjs",
     "test:watch": "vitest",
     "tunnel": "node scripts/start-ngrok.mjs",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test:keyed-surfaces": "node scripts/keyed-surface-audit.mjs"
   },
   "dependencies": {
     "@clerk/clerk-react": "5.61.9",
