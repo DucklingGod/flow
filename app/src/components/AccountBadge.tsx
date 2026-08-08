@@ -1,6 +1,6 @@
 import { LogIn, Sparkles } from 'lucide-react'
 import { SignedIn, SignedOut, UserButton } from '@clerk/clerk-react'
-import { authConfigured, useFlowSession } from '../auth/sessionContext'
+import { authConfigured, useClerkReady, useFlowSession } from '../auth/sessionContext'
 import { planFor, upgradeTargetsFrom } from '../domain/entitlements'
 
 /**
@@ -9,7 +9,9 @@ import { planFor, upgradeTargetsFrom } from '../domain/entitlements'
  */
 export function AccountBadge() {
   const session = useFlowSession()
-  if (!authConfigured) return null
+  const clerkReady = useClerkReady()
+  // Waits for ClerkProvider: SignedIn/SignedOut/UserButton throw without it.
+  if (!authConfigured || !clerkReady) return null
 
   const plan = planFor(session.tier)
   const canUpgrade = upgradeTargetsFrom(session.tier).length > 0

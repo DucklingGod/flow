@@ -531,3 +531,17 @@
   .pillar-card:hover, .problem-row:hover, .step-list li:hover,
   .studio-chip:hover, .plan-card:hover { transform: none !important; }
 }
+
+.auth-loading {
+  display: grid; place-items: center; align-content: center; gap: 12px;
+  min-height: 260px; padding: 30px;
+  border: 1px solid var(--line); border-radius: 26px 26px 8px 26px;
+  background: rgba(255, 255, 252, .94); box-shadow: var(--shadow);
+  color: var(--muted); font-size: 15px;
+}
+.auth-loading::before {
+  content: ''; width: 24px; height: 24px;
+  border: 2.5px solid #cfd9d2; border-top-color: var(--forest);
+  border-radius: 50%; animation: marketing-spin .7s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) { .auth-loading::before { animation-duration: 1.6s; } }

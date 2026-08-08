@@ -17,3 +17,19 @@ export const SessionContext = createContext<FlowSession>(
 export function useFlowSession() {
   return useContext(SessionContext)
 }
+
+/**
+ * True only while `ClerkProvider` is actually mounted.
+ *
+ * The provider lives in a lazily loaded chunk so the marketing page does not
+ * pay for the auth SDK. During that load the Suspense fallback still renders
+ * the page, which means any Clerk component mounted in that window would throw
+ * "can only be used within <ClerkProvider />". Components that render Clerk
+ * children must gate on this rather than on `authConfigured`, which is true
+ * from the first paint.
+ */
+export const ClerkReadyContext = createContext(false)
+
+export function useClerkReady() {
+  return useContext(ClerkReadyContext)
+}

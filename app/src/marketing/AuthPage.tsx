@@ -1,6 +1,6 @@
 import { ArrowLeft, DatabaseBackup, Lock, ShieldCheck } from 'lucide-react'
 import { SignIn, SignUp } from '@clerk/clerk-react'
-import { authConfigured } from '../auth/sessionContext'
+import { authConfigured, useClerkReady } from '../auth/sessionContext'
 import './marketing.css'
 
 const assurances = [
@@ -65,20 +65,35 @@ function AuthUnconfigured({ mode }: { mode: 'signIn' | 'signUp' }) {
   )
 }
 
+/**
+ * Placeholder shown while the lazily loaded ClerkProvider chunk arrives.
+ * Rendering `<SignIn>`/`<SignUp>` before the provider mounts throws, so the
+ * shell paints first and the form follows.
+ */
+function AuthLoading() {
+  return <div className="auth-loading panel" role="status">กำลังเตรียมแบบฟอร์ม…</div>
+}
+
 export function SignInPage() {
+  const clerkReady = useClerkReady()
   if (!authConfigured) return <AuthUnconfigured mode="signIn" />
   return (
     <AuthShell mode="signIn">
-      <SignIn routing="path" path="/sign-in" signUpUrl="/sign-up" forceRedirectUrl="/#/studio" />
+      {clerkReady
+        ? <SignIn routing="path" path="/sign-in" signUpUrl="/sign-up" forceRedirectUrl="/#/studio" />
+        : <AuthLoading />}
     </AuthShell>
   )
 }
 
 export function SignUpPage() {
+  const clerkReady = useClerkReady()
   if (!authConfigured) return <AuthUnconfigured mode="signUp" />
   return (
     <AuthShell mode="signUp">
-      <SignUp routing="path" path="/sign-up" signInUrl="/sign-in" forceRedirectUrl="/#/studio" />
+      {clerkReady
+        ? <SignUp routing="path" path="/sign-up" signInUrl="/sign-in" forceRedirectUrl="/#/studio" />
+        : <AuthLoading />}
     </AuthShell>
   )
 }

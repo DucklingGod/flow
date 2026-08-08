@@ -2,7 +2,7 @@ import { useMemo, type ReactNode } from 'react'
 import { ClerkProvider, useAuth, useUser } from '@clerk/clerk-react'
 import { orderedPlans } from '../domain/entitlements'
 import { resolveSession } from './session'
-import { clerkPublishableKey, SessionContext } from './sessionContext'
+import { ClerkReadyContext, clerkPublishableKey, SessionContext } from './sessionContext'
 import { clerkAppearance } from './clerkAppearance'
 
 /**
@@ -45,7 +45,9 @@ function ClerkSessionBridge({ children }: { children: ReactNode }) {
 export default function ClerkGate({ children }: { children: ReactNode }) {
   return (
     <ClerkProvider publishableKey={clerkPublishableKey} appearance={clerkAppearance} afterSignOutUrl="/">
-      <ClerkSessionBridge>{children}</ClerkSessionBridge>
+      <ClerkReadyContext.Provider value={true}>
+        <ClerkSessionBridge>{children}</ClerkSessionBridge>
+      </ClerkReadyContext.Provider>
     </ClerkProvider>
   )
 }
