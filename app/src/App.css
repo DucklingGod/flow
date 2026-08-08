@@ -912,8 +912,11 @@ footer p { max-width:700px; margin:0; text-align:right; font-size:var(--type-lab
 @media (max-width: 620px) { .feature-gate { grid-template-columns:1fr; }.feature-gate-action { justify-content:center; } }
 
 /* Sidebar account strip. Present only when an identity provider is configured. */
-.account-badge { margin-top:auto; margin-bottom:12px; display:grid; gap:8px; padding:12px; border:1px solid var(--line); border-radius:16px; background:rgba(255,255,255,.7); }
-.account-identity { display:flex; align-items:center; gap:10px; min-width:0; }
+/* Borderless row in the sidebar's own idiom: the avatar is already a circle,
+   so a card around it only steals width from the name. A hairline separates
+   it from the nav the way the brand block is separated at the top. */
+.account-badge { margin-top:auto; margin-bottom:12px; padding-top:12px; display:grid; gap:8px; border-top:1px solid var(--line); }
+.account-identity { display:flex; align-items:center; gap:10px; min-width:0; padding:0 4px; }
 .account-identity > div { min-width:0; display:grid; }
 .account-identity strong { font-size:var(--type-body-sm); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .account-identity small { color:var(--muted); font-size:var(--type-caption); }
@@ -924,5 +927,12 @@ footer p { max-width:700px; margin:0; text-align:right; font-size:var(--type-lab
 .account-signin:hover { border-color:var(--forest); }
 .account-upgrade svg, .account-signin svg { width:16px; }
 .sidebar .account-badge + .sidebar-note { margin-top:0; }
+@media (max-width: 1100px) {
+  .account-badge { padding-top:10px; }
+  .account-identity { justify-content:center; padding:0; }
+  .account-identity > div { display:none; }
+  .account-upgrade, .account-signin { font-size:0; gap:0; padding:0; }
+  .account-upgrade svg, .account-signin svg { width:17px; }
+}
 /* An enabled remote capability is visually distinct from an enabled local one. */
 .feature-gates .remote-on { border-color:#d6c48f; color:#7a5a1e; background:#fdf6e3; }
